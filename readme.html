@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Standards Microservices</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0d12;
+      --bg2: #0f1319;
+      --bg3: #151b24;
+      --border: #1e2a38;
+      --accent: #00d4ff;
+      --accent2: #7c3aed;
+      --accent3: #10b981;
+      --danger: #f43f5e;
+      --text: #e2e8f0;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+      --code-bg: #0d1117;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 260px;
+      height: 100vh;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      padding: 32px 0;
+      overflow-y: auto;
+      z-index: 100;
+    }
+
+    .sidebar-logo {
+      padding: 0 24px 28px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+
+    .sidebar-logo .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--accent);
+      background: rgba(0, 212, 255, 0.08);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      padding: 3px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .sidebar-logo h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    .nav-section {
+      padding: 0 16px;
+      margin-bottom: 4px;
+    }
+
+    .nav-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 8px 8px 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 8px;
+      border-radius: 6px;
+      text-decoration: none;
+      color: var(--text-dim);
+      font-size: 13px;
+      font-weight: 400;
+      transition: all 0.15s;
+    }
+
+    .nav-item:hover, .nav-item.active {
+      background: rgba(0, 212, 255, 0.06);
+      color: var(--accent);
+    }
+
+    .nav-item .num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      min-width: 20px;
+    }
+
+    /* MAIN */
+    .main {
+      margin-left: 260px;
+      padding: 60px 72px 100px 72px;
+      max-width: 980px;
+    }
+
+    /* HERO */
+    .hero {
+      margin-bottom: 72px;
+      padding-bottom: 48px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hero-eyebrow::before {
+      content: '';
+      display: inline-block;
+      width: 24px;
+      height: 1px;
+      background: var(--accent);
+    }
+
+    .hero h1 {
+      font-size: 52px;
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 520px;
+      line-height: 1.7;
+      font-weight: 400;
+    }
+
+    .hero-tags {
+      display: flex;
+      gap: 8px;
+      margin-top: 28px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .tag-blue { background: rgba(0,212,255,0.08); color: var(--accent); border: 1px solid rgba(0,212,255,0.2); }
+    .tag-purple { background: rgba(124,58,237,0.1); color: #a78bfa; border: 1px solid rgba(124,58,237,0.25); }
+    .tag-green { background: rgba(16,185,129,0.08); color: var(--accent3); border: 1px solid rgba(16,185,129,0.2); }
+    .tag-red { background: rgba(244,63,94,0.08); color: #fb7185; border: 1px solid rgba(244,63,94,0.2); }
+
+    /* SECTIONS */
+    .section {
+      margin-bottom: 64px;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .section-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--accent);
+      font-weight: 500;
+      letter-spacing: 0.05em;
+      opacity: 0.7;
+    }
+
+    .section h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .divider {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      margin-left: 8px;
+    }
+
+    /* CARDS */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    /* TABLE */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead tr {
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      text-align: left;
+      padding: 12px 20px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.12s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+
+    tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+    td {
+      padding: 13px 20px;
+      color: var(--text-dim);
+      vertical-align: middle;
+    }
+
+    td:first-child { color: var(--text); font-weight: 500; }
+
+    /* CODE */
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .code-lang {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .code-dots { display: flex; gap: 6px; }
+    .code-dots span {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .code-dots .d1 { background: #f43f5e44; }
+    .code-dots .d2 { background: #f59e0b44; }
+    .code-dots .d3 { background: #10b98144; }
+
+    pre {
+      padding: 20px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #cdd6f4;
+    }
+
+    .kw { color: #cba6f7; }
+    .fn { color: #89b4fa; }
+    .str { color: #a6e3a1; }
+    .cm { color: #6c7086; font-style: italic; }
+    .num { color: #fab387; }
+    .cls { color: #f9e2af; }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      background: rgba(0, 212, 255, 0.07);
+      border: 1px solid rgba(0, 212, 255, 0.15);
+      color: var(--accent);
+      padding: 1px 7px;
+      border-radius: 4px;
+    }
+
+    /* FILE TREE */
+    .file-tree {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      line-height: 2;
+      color: var(--text-dim);
+    }
+
+    .file-tree .dir { color: var(--accent); font-weight: 500; }
+    .file-tree .file { color: #cdd6f4; }
+    .file-tree .comment { color: var(--text-muted); font-style: italic; }
+    .file-tree .tree-line { color: #2d3748; }
+
+    /* RULES GRID */
+    .rules-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .rule-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 22px;
+    }
+
+    .rule-card.do { border-top: 2px solid var(--accent3); }
+    .rule-card.dont { border-top: 2px solid var(--danger); }
+
+    .rule-card h3 {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .rule-card.do h3 { color: var(--accent3); }
+    .rule-card.dont h3 { color: var(--danger); }
+
+    .rule-card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .rule-card ul li {
+      font-size: 13.5px;
+      color: var(--text-dim);
+      padding-left: 16px;
+      position: relative;
+      line-height: 1.5;
+    }
+
+    .rule-card.do ul li::before { content: '→'; position: absolute; left: 0; color: var(--accent3); font-size: 11px; top: 3px; }
+    .rule-card.dont ul li::before { content: '×'; position: absolute; left: 0; color: var(--danger); font-size: 12px; top: 2px; }
+
+    /* ARCH BLOCK */
+    .arch-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px 32px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .arch-item {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .arch-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(0,212,255,0.08);
+      border: 1px solid rgba(0,212,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .arch-item h4 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .arch-item p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* STEPS */
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .step {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .step-connector {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(0,212,255,0.08);
+      border: 1px solid rgba(0,212,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .step-line {
+      width: 1px;
+      flex: 1;
+      min-height: 12px;
+      background: var(--border);
+      margin: 4px 0;
+    }
+
+    .step-content {
+      flex: 1;
+      padding-bottom: 20px;
+    }
+
+    .step-content h3 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 10px;
+      padding-top: 5px;
+    }
+
+    /* CALLOUT */
+    .callout {
+      background: rgba(0, 212, 255, 0.05);
+      border: 1px solid rgba(0, 212, 255, 0.15);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      font-size: 13.5px;
+      color: var(--text-dim);
+      margin: 16px 0;
+      line-height: 1.6;
+    }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 32px 24px; }
+      .rules-grid { grid-template-columns: 1fr; }
+      .arch-block { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 36px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="badge">v1.0.0</div>
+      <h2>Standards<br>Microservices</h2>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Introduction</div>
+      <a href="#objectif" class="nav-item"><span class="num">01</span> Objectif</a>
+      <a href="#nommage" class="nav-item"><span class="num">02</span> Conventions</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Architecture</div>
+      <a href="#structure" class="nav-item"><span class="num">03</span> Structure</a>
+      <a href="#fichiers" class="nav-item"><span class="num">04</span> Fichiers</a>
+      <a href="#organisation" class="nav-item"><span class="num">05</span> Organisation</a>
+      <a href="#lib" class="nav-item"><span class="num">06</span> Répertoire lib</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Configuration</div>
+      <a href="#env" class="nav-item"><span class="num">07</span> Variables env</a>
+      <a href="#deps" class="nav-item"><span class="num">08</span> Dépendances</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Déploiement</div>
+      <a href="#install" class="nav-item"><span class="num">09</span> Installation</a>
+      <a href="#lancement" class="nav-item"><span class="num">10</span> Lancement</a>
+      <a href="#monorepo" class="nav-item"><span class="num">11</span> Monorepo</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Standards</div>
+      <a href="#pratiques" class="nav-item"><span class="num">12</span> Bonnes pratiques</a>
+      <a href="#securite" class="nav-item"><span class="num">13</span> Sécurité</a>
+      <a href="#principes" class="nav-item"><span class="num">14</span> Architecture</a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="hero-eyebrow">Documentation Technique</div>
+      <h1>Standards de<br>Développement</h1>
+      <p class="hero-sub">Référence obligatoire pour tous les développeurs du backend. Tout code doit respecter ces standards avant validation.</p>
+      <div class="hero-tags">
+        <span class="tag tag-blue">TypeScript</span>
+        <span class="tag tag-purple">Microservices</span>
+        <span class="tag tag-green">Prisma</span>
+        <span class="tag tag-blue">Express</span>
+        <span class="tag tag-red">Node.js</span>
+      </div>
+    </div>
+
+    <!-- 1. OBJECTIF -->
+    <section class="section" id="objectif">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <h2>Objectif</h2>
+        <div class="divider"></div>
+      </div>
+      <div class="arch-block">
+        <div class="arch-item">
+          <div class="arch-icon">⚙️</div>
+          <div>
+            <h4>Cohérence</h4>
+            <p>Uniformité du code entre toutes les équipes et tous les services.</p>
+          </div>
+        </div>
+        <div class="arch-item">
+          <div class="arch-icon">🔧</div>
+          <div>
+            <h4>Maintenabilité</h4>
+            <p>Code lisible, documenté et facile à faire évoluer.</p>
+          </div>
+        </div>
+        <div class="arch-item">
+          <div class="arch-icon">📈</div>
+          <div>
+            <h4>Scalabilité</h4>
+            <p>Architecture capable de supporter la croissance de la plateforme.</p>
+          </div>
+        </div>
+        <div class="arch-item">
+          <div class="arch-icon">🤝</div>
+          <div>
+            <h4>Collaboration</h4>
+            <p>Standards communs pour une intégration fluide entre développeurs.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. NOMMAGE -->
+    <section class="section" id="nommage">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <h2>Conventions de nommage</h2>
+        <div class="divider"></div>
+      </div>
+      <div class="card">
+        <table>
+          <thead>
+            <tr>
+              <th>Élément</th>
+              <th>Convention</th>
+              <th>Exemple</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Variables</td>
+              <td><code>snake_case</code></td>
+              <td><code>user_id</code>, <code>payment_status</code></td>
+            </tr>
+            <tr>
+              <td>Fonctions</td>
+              <td><code>camelCase</code></td>
+              <td><code>createUserAccount()</code></td>
+            </tr>
+            <tr>
+              <td>Classes</td>
+              <td><code>PascalCase</code></td>
+              <td><code>UserService</code>, <code>PaymentController</code></td>
+            </tr>
+            <tr>
+              <td>Fichiers</td>
+              <td><code>kebab-case</code></td>
+              <td><code>user-controller.ts</code></td>
+            </tr>
+            <tr>
+              <td>Dossiers</td>
+              <td><code>kebab-case</code></td>
+              <td><code>auth-service/</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+          <span class="code-lang">TypeScript</span>
+        </div>
+        <pre><span class="cm">// Variables — snake_case</span>
+<span class="kw">const</span> user_id = <span class="num">10</span>;
+<span class="kw">const</span> payment_status = <span class="str">"SUCCESS"</span>;
+
+<span class="cm">// Fonctions — camelCase</span>
+<span class="kw">function</span> <span class="fn">createUserAccount</span>() {}
+<span class="kw">function</span> <span class="fn">validatePaymentRequest</span>() {}
+
+<span class="cm">// Classes — PascalCase</span>
+<span class="kw">class</span> <span class="cls">UserService</span> {}
+<span class="kw">class</span> <span class="cls">PaymentController</span> {}</pre>
+      </div>
+    </section>
+
+    <!-- 3. STRUCTURE -->
+    <section class="section" id="structure">
+      <div class="section-header">
+        <span class="section-num">03</span>
+        <h2>Structure d'un microservice</h2>
+        <div class="divider"></div>
+      </div>
+      <div class="file-tree">
+        <span class="dir">service-name/</span><br>
+        <span class="tree-line">├── </span><span class="dir">prisma/</span><br>
+        <span class="tree-line">│   └── </span><span class="file">schema.prisma</span><br>
+        <span class="tree-line">├── </span><span class="dir">src/</span><br>
+        <span class="tree-line">│   ├── </span><span class="dir">controllers/</span><span class="comment">   # Gestion des requêtes HTTP</span><br>
+        <span class="tree-line">│   ├── </span><span class="dir">services/</span><span class="comment">      # Logique métier</span><br>
+        <span class="tree-line">│   ├── </span><span class="dir">routes/</span><span class="comment">        # Définition des endpoints</span><br>
+        <span class="tree-line">│   ├── </span><span class="dir">middlewares/</span><span class="comment">   # Auth, validation, erreurs</span><br>
+        <span class="tree-line">│   ├── </span><span class="dir">lib/</span><span class="comment">           # Fonctions génériques</span><br>
+        <span class="tree-line">│   ├── </span><span class="dir">types/</span><span class="comment">         # Typage TypeScript partagé</span><br>
+        <span class="tree-line">│   ├── </span><span class="dir">utils/</span><span class="comment">         # Utilitaires divers</span><br>
+        <span class="tree-line">│   └── </span><span class="file">server.ts</span><span class="comment">      # Point d'entrée</span><br>
+        <span class="tree-line">├── </span><span class="file">.env</span><br>
+        <span class="tree-line">├── </span><span class="file">.env.example</span><br>
+        <span class="tree-line">├── </span><span class="file">package.json</span><br>
+        <span class="tree-line">├── </span><span class="file">tsconfig.json</span><br>
+        <span class="tree-line">└── </span><span class="file">README.md</span>
+      </div>
+    </section>
+
+    <!-- 4. FICHIERS -->
+    <section class="section" id="fichiers">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <h2>Nommage des fichiers et dossiers</h2>
+        <div class="divider"></div>
+      </div>
+      <p style="color:var(--text-dim); font-size:14px; margin-bottom:16px;">Tous les fichiers et dossiers utilisent le format <code>kebab-case</code>.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+          <span class="code-lang">Exemples</span>
+        </div>
+        <pre><span class="cm"># Fichiers</span>
+user-controller.ts
+payment-service.ts
+auth-middleware.ts
+
+<span class="cm"># Dossiers</span>
+auth-service/
+payment-service/</pre>
+      </div>
+    </section>
+
+    <!-- 5. ORGANISATION -->
+    <section class="section" id="organisation">
+      <div class="section-header">
+        <span class="section-num">05</span>
+        <h2>Organisation du code</h2>
+        <div class="divider"></div>
+      </div>
+      <div class="card">
+        <table>
+          <thead>
+            <tr><th>Couche</th><th>Rôle</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>controllers/</code></td><td>Gèrent les requêtes HTTP entrantes</td></tr>
+            <tr><td><code>services/</code></td><td>Contiennent la logique métier</td></tr>
+            <tr><td><code>routes/</code></td><td>Définissent les endpoints REST</td></tr>
+            <tr><td><code>middlewares/</code></td><td>Auth, validation, gestion d'erreurs</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout">
+        Les <strong>controllers</strong> appellent les <strong>services</strong>. Les services traitent la donnée. Ne jamais mélanger les deux responsabilités.
+      </div>
+    </section>
+
+    <!-- 6. LIB -->
+    <section class="section" id="lib">
+      <div class="section-header">
+        <span class="section-num">06</span>
+        <h2>Répertoire lib</h2>
+        <div class="divider"></div>
+      </div>
+      <p style="color:var(--text-dim); font-size:14px; margin-bottom:16px;">Fonctions génériques et réutilisables — aucune logique métier.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+          <span class="code-lang">TypeScript</span>
+        </div>
+        <pre><span class="cm">// lib/crypto.ts</span>
+<span class="kw">export function</span> <span class="fn">hashPassword</span>(password: <span class="cls">string</span>): <span class="cls">string</span> { ... }
+
+<span class="cm">// lib/jwt.ts</span>
+<span class="kw">export function</span> <span class="fn">generateToken</span>(payload: <span class="cls">object</span>): <span class="cls">string</span> { ... }</pre>
+      </div>
+      <div class="rules-grid" style="margin-top:16px;">
+        <div class="rule-card do">
+          <h3>✓ Règles</h3>
+          <ul>
+            <li>Fonctions réutilisables entre modules</li>
+            <li>Indépendant de tout service spécifique</li>
+            <li>Code générique uniquement</li>
+          </ul>
+        </div>
+        <div class="rule-card dont">
+          <h3>✕ Interdictions</h3>
+          <ul>
+            <li>Logique métier dans lib/</li>
+            <li>Appels directs à la base de données</li>
+            <li>Couplage avec un service précis</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. ENV -->
+    <section class="section" id="env">
+      <div class="section-header">
+        <span class="section-num">07</span>
+        <h2>Variables d'environnement</h2>
+        <div class="divider"></div>
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+          <span class="code-lang">.env</span>
+        </div>
+        <pre><span class="cm">PORT</span>=<span class="num">3300</span>
+<span class="cm">DATABASE_URL</span>=<span class="str">postgresql://user:password@localhost:5432/db</span>
+<span class="cm">JWT_SECRET</span>=<span class="str">your_secret_key</span>
+<span class="cm">NODE_ENV</span>=<span class="str">development</span></pre>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <table>
+          <thead><tr><th>Règle</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>Ne jamais committer <code>.env</code></td><td>L'ajouter impérativement dans <code>.gitignore</code></td></tr>
+            <tr><td>Fournir <code>.env.example</code></td><td>Documenter toutes les variables attendues</td></tr>
+            <tr><td>Utiliser <code>dotenv</code></td><td>Charger via <code>dotenv.config()</code> au démarrage</td></tr>
+            <tr><td>Valider au démarrage</td><td>Vérifier la présence des variables critiques</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 8. DEPS -->
+    <section class="section" id="deps">
+      <div class="section-header">
+        <span class="section-num">08</span>
+        <h2>Dépendances minimales</h2>
+        <div class="divider"></div>
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div>
+          <span class="code-lang">package.json</span>
+        </div>
+        <pre>{
+  <span class="str">"dependencies"</span>: {
+    <span class="str">"@prisma/client"</span>: <span class="str">"^7.7.0"</span>,
+    <span class="str">"dotenv"</span>: <span class="str">"^17.4.2"</span>,
+    <span class="str">"express"</span>: <span class="str">"^5.2.1"</span>,
+    <span class="str">"prisma"</span>: <span class="str">"^7.7.0"</span>
+  },
+  <span class="str">"devDependencies"</span>: {
+    <span class="str">"@types/express"</span>: <span class="str">"^5.0.6"</span>,
+    <span class="str">"@types/node"</span>: <span class="str">"^22.0.0"</span>,
+    <span class="str">"tsx"</span>: <span class="str">"^4.21.0"</span>,
+    <span class="str">"typescript"</span>: <span class="str">"^5.0.0"</span>
+  }
+}</pre>
+      </div>
+    </section>
+
+    <!-- 9. INSTALL -->
+    <section class="section" id="install">
+      <div class="section-header">
+        <span class="section-num">09</span>
+        <h2>Installation d'un microservice</h2>
+        <div class="divider"></div>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-connector">
+            <div class="step-num">1</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-content">
+            <h3>Créer le service</h3>
+            <div class="code-block">
+              <div class="code-header"><div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div><span class="code-lang">bash</span></div>
+              <pre>mkdir auth-service
+cd auth-service
+npm init -y</pre>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-connector">
+            <div class="step-num">2</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-content">
+            <h3>Installer les dépendances</h3>
+            <div class="code-block">
+              <div class="code-header"><div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div><span class="code-lang">bash</span></div>
+              <pre>npm install express dotenv @prisma/client prisma
+npm install -D typescript tsx @types/node @types/express</pre>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-connector">
+            <div class="step-num">3</div>
+            <div class="step-line"></div>
+          </div>
+          <div class="step-content">
+            <h3>Initialiser Prisma</h3>
+            <div class="code-block">
+              <div class="code-header"><div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div><span class="code-lang">bash</span></div>
+              <pre>npx prisma init</pre>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-connector">
+            <div class="step-num">4</div>
+          </div>
+          <div class="step-content">
+            <h3>Initialiser TypeScript</h3>
+            <div class="code-block">
+              <div class="code-header"><div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div><span class="code-lang">bash</span></div>
+              <pre>npx tsc --init</pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. LANCEMENT -->
+    <section class="section" id="lancement">
+      <div class="section-header">
+        <span class="section-num">10</span>
+        <h2>Lancement</h2>
+        <div class="divider"></div>
+      </div>
+      <div class="code-block">
+        <div class="code-header"><div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div><span class="code-lang">bash — développement</span></div>
+        <pre>npx tsx src/server.ts</pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header"><div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div><span class="code-lang">package.json — scripts</span></div>
+        <pre><span class="str">"scripts"</span>: {
+  <span class="str">"dev"</span>: <span class="str">"tsx watch src/server.ts"</span>,
+  <span class="str">"build"</span>: <span class="str">"tsc"</span>,
+  <span class="str">"start"</span>: <span class="str">"node dist/server.js"</span>
+}</pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header"><div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div><span class="code-lang">bash</span></div>
+        <pre>npm run dev</pre>
+      </div>
+    </section>
+
+    <!-- 11. MONOREPO -->
+    <section class="section" id="monorepo">
+      <div class="section-header">
+        <span class="section-num">11</span>
+        <h2>Lancement global — Monorepo</h2>
+        <div class="divider"></div>
+      </div>
+      <div class="code-block">
+        <div class="code-header"><div class="code-dots"><span class="d1"></span><span class="d2"></span><span class="d3"></span></div><span class="code-lang">bash</span></div>
+        <pre><span class="cm"># Installer toutes les dépendances</span>
+npm install
+
+<span class="cm"># Lancer un service spécifique</span>
+npm run dev --workspace=auth-service
+npm run dev --workspace=payment-service</pre>
+      </div>
+    </section>
+
+    <!-- 12. PRATIQUES -->
+    <section class="section" id="pratiques">
+      <div class="section-header">
+        <span class="section-num">12</span>
+        <h2>Bonnes pratiques</h2>
+        <div class="divider"></div>
+      </div>
+      <div class="rules-grid">
+        <div class="rule-card do">
+          <h3>✓ À faire</h3>
+          <ul>
+            <li>Respecter la séparation des responsabilités entre couches</li>
+            <li>Utiliser <code>shared/</code> pour le code commun</li>
+            <li>Centraliser les types dans <code>src/types/</code></li>
+            <li>Gérer les erreurs via un middleware global</li>
+            <li>Documenter chaque service avec un <code>README.md</code></li>
+          </ul>
+        </div>
+        <div class="rule-card dont">
+          <h3>✕ À éviter</h3>
+          <ul>
+            <li>Mélanger logique métier et controllers</li>
+            <li>Dupliquer du code entre services</li>
+            <li>Hardcoder des valeurs sensibles</li>
+            <li>Coupler fortement deux microservices</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13. SECURITE -->
+    <section class="section" id="securite">
+      <div class="section-header">
+        <span class="section-num">13</span>
+        <h2>Sécurité</h2>
+        <div class="divider"></div>
+      </div>
+      <div class="card">
+        <table>
+          <thead><tr><th>Pratique</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>Validation des entrées</td><td>Valider chaque donnée reçue (body, params, query)</td></tr>
+            <tr><td>JWT</td><td>Protéger les routes avec authentification par token</td></tr>
+            <tr><td>Variables sensibles</td><td>Stocker dans <code>.env</code>, jamais dans le code</td></tr>
+            <tr><td>Logging</td><td>Logger les connexions, erreurs et accès refusés</td></tr>
+            <tr><td>HTTPS</td><td>Obligatoire en production</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 14. ARCHITECTURE -->
+    <section class="section" id="principes">
+      <div class="section-header">
+        <span class="section-num">14</span>
+        <h2>Principes d'architecture</h2>
+        <div class="divider"></div>
+      </div>
+      <div class="arch-block">
+        <div class="arch-item">
+          <div class="arch-icon">📦</div>
+          <div>
+            <h4>1 responsabilité</h4>
+            <p>Chaque microservice couvre un seul domaine métier.</p>
+          </div>
+        </div>
+        <div class="arch-item">
+          <div class="arch-icon">🗄️</div>
+          <div>
+            <h4>1 base de données</h4>
+            <p>Chaque service possède sa propre base, sans partage.</p>
+          </div>
+        </div>
+        <div class="arch-item">
+          <div class="arch-icon">🔗</div>
+          <div>
+            <h4>API REST</h4>
+            <p>Communication inter-services via REST ou événements asynchrones.</p>
+          </div>
+        </div>
+        <div class="arch-item">
+          <div class="arch-icon">📁</div>
+          <div>
+            <h4>Package shared/</h4>
+            <p>Seul point de partage de code commun entre services.</p>
+          </div>
+        </div>
+      </div>
+      <div class="callout" style="margin-top:20px;">
+        Aucun service ne doit importer directement le code métier d'un autre service.
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Active nav item on scroll
+    const sections = document.querySelectorAll('section[id]');
+    const navItems = document.querySelectorAll('.nav-item');
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          navItems.forEach(item => item.classList.remove('active'));
+          const active = document.querySelector(`.nav-item[href="#${entry.target.id}"]`);
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { threshold: 0.4 });
+
+    sections.forEach(s => observer.observe(s));
+  </script>
+</body>
+</html>

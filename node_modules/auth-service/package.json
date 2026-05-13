@@ -1,0 +1,24 @@
+{
+  "name": "auth-service",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@prisma/client": "^7.7.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "prisma": "^7.7.0"
+  },
+  "devDependencies": {
+    "@types/dotenv": "^6.1.1",
+    "@types/express": "^5.0.6",
+    "tsx": "^4.21.0"
+  }
+}
