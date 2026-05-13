@@ -10,7 +10,9 @@
   ],
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev:gateway": "npm run dev --workspace=api-gateway",
+    "dev:auth": "npm run dev --workspace=services/auth",
+    "dev": "npm run dev:gateway"
   },
   "keywords": [],
   "author": "",
