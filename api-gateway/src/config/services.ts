@@ -31,6 +31,23 @@ class ServiceProxy {
 
             // Temps maximum d’attente avant timeout
             timeout: 5000
+        },
+        {
+            // Route exposée par l’API Gateway
+            path: '/api/v1/payment',
+
+            // URL cible du micro-service
+            url: config.PAYMENT_SERVICE,
+
+            // Réécriture du chemin avant transmission
+            // au micro-service cible
+            pathRewrite: { "^/api/v1/payment": "" },
+
+            // Nom interne du service
+            name: 'payment-service',
+
+            // Temps maximum d’attente avant timeout
+            timeout: 5000
         }
     ];
 

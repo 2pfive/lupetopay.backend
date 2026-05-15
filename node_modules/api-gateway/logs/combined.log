@@ -1,2 +1,7 @@
 [2026-05-13T17:13:50.015Z] [info] [auth-service]: proxy_registered
 [2026-05-13T17:13:50.026Z] [info] [api-gateway]: server_started
+[2026-05-13T17:17:54.827Z] [info] [auth-service]: proxy_registered
+[2026-05-13T17:17:54.833Z] [info] [api-gateway]: server_started
+[2026-05-13T17:27:41.819Z] [info] [auth-service]: proxy_registered
+[2026-05-13T17:27:41.855Z] [info] [payment-service]: proxy_registered
+[2026-05-13T17:27:41.865Z] [info] [api-gateway]: server_started
