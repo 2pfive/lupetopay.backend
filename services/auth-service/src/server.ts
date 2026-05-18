@@ -1,16 +1,18 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-import { Request, Response } from "express";
+import { Request, Response, RequestHandler } from "express";
 import { prisma } from "./lib/prisma.client";
 import router from "./auth.router";
 import { logger } from "./lib/helper";
 import { errorMiddleware } from "./auth.middlewares";
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
 const app = express();
 
+app.use(cookieParser() as unknown as RequestHandler);
 app.use(express.json());
 app.use(cors());
 
@@ -29,9 +31,9 @@ app.use(router);
 app.get('/roles', async (_req: Request, res: Response) => {
     try {
         const response = await prisma.adminRolePermission.findMany({
-            where:{
-                admin_role:{
-                  name:"admin"
+            where: {
+                admin_role: {
+                    name: "admin"
                 }
             },
             select: {
@@ -48,10 +50,10 @@ app.get('/roles', async (_req: Request, res: Response) => {
                 }
             }
         })
-        const formatted=response.map((p:any)=>{
+        const formatted = response.map((p: any) => {
             return {
-                code:p.admin_permission.code,
-                description:p.admin_permission.description
+                code: p.admin_permission.code,
+                description: p.admin_permission.description
             }
         })
         logger.info("Roles fetched successfully");

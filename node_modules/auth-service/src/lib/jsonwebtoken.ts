@@ -24,13 +24,21 @@ export const generateToken = async (payload: any) => {
 export const generateRefreshToken = () => {
     const token = crypto.randomBytes(64).toString("hex");
 
-    const tokenHash = crypto
-        .createHash("sha256")
-        .update(token)
-        .digest("hex");
+    const tokenHash = hashToken(token)
 
     return {
         token,       // à envoyer au client
         tokenHash    // à stocker en DB
     };
+};
+
+export const hashToken = (token: string): string => {
+    if (!token) {
+        throw new Error("token requis");
+    }
+
+    return crypto
+        .createHmac("sha256", config.refresh_secret!)
+        .update(token)
+        .digest("hex");
 };

@@ -82,7 +82,7 @@ export const requirePermission = (permissionCode: string) => {
             const hasPermission = permissionCodes.includes(permissionCode);
 
             if (!hasPermission) {
-                throw new AppError("Vous n'êtes pas authorisé à effectuer cette opération", 403);
+                throw new AppError("Vous n'êtes pas authorisé à ", 403);
             }
 
             next();
@@ -91,4 +91,21 @@ export const requirePermission = (permissionCode: string) => {
             next(error);
         }
     };
+};
+
+export const extractRefreshToken = (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    const refreshToken = req.cookies?.REFRESH_TOKEN;
+
+    if (!refreshToken) {
+        return next(new AppError("refresh token manquant", 401));
+    }
+
+    // on l’attache à la requête pour la suite
+    (req as any).refreshToken = refreshToken;
+
+    next();
 };

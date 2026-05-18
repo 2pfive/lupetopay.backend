@@ -1,5 +1,5 @@
 import { comparePasswords, generateTemporaryPassword, hashPassword, validateCreateAdmin } from "./lib/helper";
-import { generateRefreshToken, generateToken } from "./lib/jsonwebtoken";
+import { generateRefreshToken, generateToken, hashToken } from "./lib/jsonwebtoken";
 import { prisma } from "./lib/prisma.client";
 import { CreateAdminDTO } from "./types";
 import { AppError } from "@app/shared"
@@ -140,14 +140,14 @@ export class AuthService {
         const permissions = permissionsArrays.flat()
 
         // génération du refresh token
-        const refresh_expire_date = new Date(Date.now() + 48 * 60 * 60 * 1000)
+        // const refresh_expire_date = new Date(Date.now() + 48 * 60 * 60 * 1000)
         const { token, tokenHash } = generateRefreshToken()
         await prisma.refreshToken.create({
             data: {
                 account_id: existing.id,
                 account_type: "administrator",
                 token: tokenHash,
-                expires_at: refresh_expire_date
+                expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000)
             }
         })
 
@@ -171,11 +171,66 @@ export class AuthService {
             permissions,
             tokens: {
                 access: access_token,
-                refresh: {
-                    expires_at: refresh_expire_date,
-                    token
-                }
+                token
             }
+        }
+    }
+
+    static async rotateRefreshToken(account_id: string, oldToken: string) {
+
+        if (!account_id) {
+            throw new AppError("account_id requis", 400)
+        }
+
+        if (!oldToken) {
+            throw new AppError("refresh token requis", 400)
+        }
+
+        // récupérer le token actuel
+        const hash_old = hashToken(oldToken)
+        console.log("############## old token hashed #############", hash_old);
+
+        const existingToken = await prisma.refreshToken.findUnique({
+            where: {
+                token: hash_old
+            }
+        })
+
+        if (!existingToken) {
+            throw new AppError("refresh token invalide", 401)
+        }
+
+        if (existingToken.revoked_at || existingToken.expires_at < new Date()) {
+            throw new AppError("refresh token expiré ou révoqué", 401)
+        }
+
+        // révoquer l'ancien
+        await prisma.refreshToken.update({
+            where: {
+                token: hash_old
+            },
+            data: {
+                revoked_at: new Date()
+            }
+        })
+
+        const { token, tokenHash } = generateRefreshToken()
+
+        const expires_at = new Date(Date.now() + 48 * 60 * 60 * 1000)
+
+        // sauvegarder nouveau token
+        await prisma.refreshToken.create({
+            data: {
+                account_id,
+                account_type: existingToken.account_type,
+                token: tokenHash,
+                expires_at
+            }
+        })
+
+        return {
+            token,
+            expires_at
         }
     }
 }
