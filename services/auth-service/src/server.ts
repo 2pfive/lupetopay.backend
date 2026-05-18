@@ -28,14 +28,35 @@ app.use(router);
 // route test
 app.get('/roles', async (_req: Request, res: Response) => {
     try {
-        const response = await prisma.adminRole.findUnique({
-            where: {
-                name: 'super_admin'
+        const response = await prisma.adminRolePermission.findMany({
+            where:{
+                admin_role:{
+                  name:"admin"
+                }
+            },
+            select: {
+                admin_permission: {
+                    select: {
+                        code: true,
+                        description: true
+                    }
+                },
+                admin_role: {
+                    select: {
+                        name: true,
+                    }
+                }
+            }
+        })
+        const formatted=response.map((p:any)=>{
+            return {
+                code:p.admin_permission.code,
+                description:p.admin_permission.description
             }
         })
         logger.info("Roles fetched successfully");
 
-        res.json(response);
+        res.json(formatted);
 
     } catch (error) {
         logger.error("Error fetching roles", error);

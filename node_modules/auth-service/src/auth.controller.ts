@@ -57,4 +57,42 @@ export class AuthControllers {
             );
         }
     }
+
+    async loginController(req: Request, res: Response) {
+        try {
+            const { email, password } = req.body;
+
+            const result = await AuthService.loginAdmin(email, password);
+
+            return res.status(200).json(
+                createApiResponse(
+                    true,
+                    result,
+                    "Connexion réussie"
+                )
+            );
+
+        } catch (error: any) {
+
+            if (error instanceof AppError) {
+                return res.status(error.statusCode).json(
+                    createApiResponse(
+                        false,
+                        null,
+                        error.message,
+                        undefined,
+                        error.name
+                    )
+                );
+            }
+
+            return res.status(500).json(
+                createApiResponse(
+                    false,
+                    null,
+                    "Internal server error"
+                )
+            );
+        }
+    }
 }

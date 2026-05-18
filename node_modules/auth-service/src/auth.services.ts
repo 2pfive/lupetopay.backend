@@ -1,4 +1,5 @@
-import { generateTemporaryPassword, hashPassword, validateCreateAdmin } from "./lib/helper";
+import { comparePasswords, generateTemporaryPassword, hashPassword, validateCreateAdmin } from "./lib/helper";
+import { generateRefreshToken, generateToken } from "./lib/jsonwebtoken";
 import { prisma } from "./lib/prisma.client";
 import { CreateAdminDTO } from "./types";
 import { AppError } from "@app/shared"
@@ -78,4 +79,103 @@ export class AuthService {
         }
     }
 
+    static async loginAdmin(email: string, password: string) {
+
+        if (!email || !password)
+            throw new AppError("identifiants de connexion requis", 400)
+
+        const existing = await prisma.adminAccount.findUnique({
+            where: {
+                email
+            }
+        })
+
+        if (!existing)
+            throw new AppError("identifiants incorrects", 400)
+
+        const same_pswd = await comparePasswords(
+            existing.password_hash,
+            password
+        )
+
+        if (!same_pswd)
+            throw new AppError("identifiants incorrects", 400)
+
+        // récupération des rôles
+        const roles = await prisma.adminAccountRole.findMany({
+            where: {
+                admin_account_id: existing.id
+            },
+            include: {
+                admin_role: true
+            }
+        })
+
+        // récupération des permissions
+        const permissionsArrays = await Promise.all(
+            roles.map(async (r) => {
+
+                const res = await prisma.adminRolePermission.findMany({
+                    where: {
+                        admin_role_id: r.admin_role_id
+                    },
+                    select: {
+                        admin_permission: {
+                            select: {
+                                code: true,
+                                description: true
+                            }
+                        }
+                    }
+                })
+
+                return res.map(p => ({
+                    code: p.admin_permission.code,
+                    description: p.admin_permission.description
+                }))
+            })
+        )
+
+        // fusion des tableaux
+        const permissions = permissionsArrays.flat()
+
+        // génération du refresh token
+        const refresh_expire_date = new Date(Date.now() + 48 * 60 * 60 * 1000)
+        const { token, tokenHash } = generateRefreshToken()
+        await prisma.refreshToken.create({
+            data: {
+                account_id: existing.id,
+                account_type: "administrator",
+                token: tokenHash,
+                expires_at: refresh_expire_date
+            }
+        })
+
+        const access_token = await generateToken({
+            account_id: existing.id,
+            roles: roles.map(r => r.admin_role.name),
+            permissions,
+            account_type: "administrator"
+        })
+
+
+        return {
+            user: {
+                id: existing.id,
+                email: existing.email,
+                firstname: existing.firstname,
+                lastname: existing.lastname,
+                account_type: "administrator"
+            },
+            roles: roles.map(r => r.admin_role.name),
+            permissions,
+            tokens: {
+                access: access_token,
+                refresh: {
+                    expires_at: refresh_expire_date,
+                    token
+                }
+            }
+        }
+    }
 }
