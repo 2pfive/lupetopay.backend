@@ -19,17 +19,17 @@ datasource db {
 //
 
 model AdminAccount {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email         String   @unique
-  firstname     String
-  lastname      String
-  telephone     String
-  password_hash String
-  status        String
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-
-  roles AdminAccountRole[]
+  id                    String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                 String             @unique
+  firstname             String
+  lastname              String
+  telephone             String
+  password_hash         String
+  status                String
+  created_at            DateTime           @default(now())
+  updated_at            DateTime           @updatedAt
+  is_temporary_password Boolean            @default(false)
+  roles                 AdminAccountRole[]
 
   @@map("admin_accounts")
 }
@@ -183,6 +183,23 @@ model RefreshToken {
   created_at   DateTime  @default(now())
 
   @@map("refresh_tokens")
+}
+
+// Pour la gestion des mots de passe temporaires
+model PasswordResetToken {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+
+  account_id   String @db.Uuid
+  account_type String // "admin" | "client"
+
+  token_hash String    @unique
+  expires_at DateTime
+  used_at    DateTime?
+
+  created_at DateTime @default(now())
+
+  @@index([account_id])
+  @@map("password_reset_tokens")
 }
 
 //

@@ -15,7 +15,7 @@ const app = express()
 
 app.use(helmet())
 app.use(cors())
-app.use(express.json());
+// app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // logging des requêtes
@@ -43,6 +43,13 @@ app.use((req: Request, res: Response) => {
         message: 'resource not found'
     })
 })
+
+app.use((req, _res, next) => {
+    if (req.originalUrl.startsWith("/api/v1/")) {
+        delete req.body; // important
+    }
+    next();
+});
 
 // Gestionnaire d'erreurs non géré
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

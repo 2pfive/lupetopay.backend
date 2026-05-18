@@ -47,7 +47,7 @@ class ServiceProxy {
             name: 'payment-service',
 
             // Temps maximum d’attente avant timeout
-            timeout: 5000
+            timeout: 15000
         }
     ];
 
@@ -58,54 +58,27 @@ class ServiceProxy {
     private static createProxyOptions(service: ServiceConfig): Options {
 
         return {
-
-            // Adresse du micro-service cible
             target: service.url,
-
-            // Modifie l’origine de la requête
-            // pour correspondre au service cible
             changeOrigin: true,
-
-            // Réécriture du chemin
             pathRewrite: service.pathRewrite,
-
-            // Timeout du proxy
             timeout: service.timeout ?? config.DEFAULT_TIMEOUT,
 
-            /**
-             * Exécuté avant l’envoi de la requête
-             * vers le micro-service.
-             */
-            onProxyReq: (_proxyReq, req) => {
+            // IMPORTANT
+            preserveHeaderKeyCase: true,
+            proxyTimeout: 10000,
+            secure: false,
 
+            onProxyReq: (_proxyReq, req) => {
                 logger.info("proxy_request", {
                     service: service.name,
                     method: req.method,
                     url: req.url
                 });
+
+                //  NE PAS TOUCHER AU BODY 
             },
 
-            /**
-             * Exécuté après réception
-             * de la réponse du micro-service.
-             */
-            onProxyRes: (proxyRes, req) => {
-
-                logger.info("proxy_response", {
-                    service: service.name,
-                    method: req.method,
-                    url: req.url,
-                    statusCode: proxyRes.statusCode
-                });
-            },
-
-            /**
-             * Gestion des erreurs du proxy
-             * lorsque le micro-service est indisponible
-             * ou inaccessible.
-             */
             onError: (err, _req, res: any) => {
-
                 logger.error(`[${service.name}] Proxy error: ${err.message}`);
 
                 res.status(502).json({
