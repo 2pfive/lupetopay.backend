@@ -1,6 +1,6 @@
 import { Application, RequestHandler } from "express";
 import { createProxyMiddleware, Options } from "http-proxy-middleware";
-import { config } from ".";
+import { config, routeMiddlewares } from ".";
 import logger from "./logger";
 import { ServiceConfig } from "../types";
 
@@ -123,4 +123,17 @@ class ServiceProxy {
 export const proxyServices = (app: Application): void => {
 
     ServiceProxy.setupProxy(app);
+};
+
+
+export const registerRouteMiddlewares = (
+    app: Application
+) => {
+
+    routeMiddlewares.forEach(route => {
+        app.use(
+            route.path,
+            ...route.middlewares
+        );
+    });
 };

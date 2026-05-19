@@ -1,4 +1,4 @@
 
-export * from "./utils/utils.js"
-export * from "./errorsHandlers/index.js"
-export * from "./types/index.js"
+export * from "./utils/utils"
+export * from "./errorsHandlers/index"
+export * from "./types/index"

@@ -1,5 +1,5 @@
 
-export interface CreateAdminDTO {
+export interface CreateUserDTO {
     email: string;
     firstname: string;
     lastname: string;
@@ -10,3 +10,4 @@ export interface CreateAdminDTO {
 
 
 export type AdminRoles='super_admin' | 'admin' | 'support'
+

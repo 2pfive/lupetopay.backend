@@ -306,17 +306,17 @@ export class AuthService {
         if (existingToken.revoked_at || existingToken.expires_at < new Date()) {
             throw new AppError("refresh token expiré ou révoqué", 401)
         }
-        
+
         // récupération des permissions
-        const user_permissions=await AuthService.getUserPermissions(account_id)
+        const user_permissions = await AuthService.getUserPermissions(account_id)
         // console.log("############# permissions #############",user_permissions);
-        
+
         // générer un nouveau token d'accès
 
         const access_token = await generateToken({
             account_id,
             roles: user_permissions.roles,
-            permissions:user_permissions.permissions,
+            permissions: user_permissions.permissions,
             account_type: "administrator"
         })
 
@@ -366,7 +366,7 @@ export class AuthService {
             await prisma.passwordResetToken.create({
                 data: {
                     account_id: new_client.id,
-                    account_type: 'admin',
+                    account_type: 'client',
                     token_hash: reset_token,
                     expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000) // expire après 48h
                 }
@@ -374,17 +374,17 @@ export class AuthService {
         }
 
         // configuration des rôles  
-        const role = await prisma.adminRole.findUnique({
+        const role = await prisma.clientRole.findUnique({
             where: {
                 name: client.role || 'admin'
             }
         })
 
         if (role) {
-            await prisma.adminAccountRole.create({
+            await prisma.clientAccountRole.create({
                 data: {
-                    admin_account_id: new_client.id,
-                    admin_role_id: role.id
+                    client_account_id: new_client.id,
+                    client_role_id: role.id
                 }
             })
         }
@@ -397,5 +397,151 @@ export class AuthService {
             role,
             temporaryPassword: temporaryPassword
         }
+    }
+
+    static async loginClient(email: string, password: string) {
+
+        if (!email || !password)
+            throw new AppError("identifiants de connexion requis", 400)
+
+        const existing = await prisma.clientAccount.findUnique({
+            where: { email }
+        })
+
+        if (!existing)
+            throw new AppError("identifiants incorrects", 400)
+
+        const same_pswd = await comparePasswords(
+            existing.password_hash,
+            password
+        )
+
+        if (!same_pswd)
+            throw new AppError("identifiants incorrects", 400)
+
+
+        const roles = await prisma.clientAccountRole?.findMany({
+            where: { client_account_id: existing.id },
+            include: { client_role: true }
+        }) ?? []
+
+        const roleNames = roles.map(r => r.client_role.name)
+
+        const permissionsArrays = await Promise.all(
+            roles.map(async (r) => {
+                const res = await prisma.clientRolePermission.findMany({
+                    where: { client_role_id: r.client_role_id },
+                    select: {
+                        client_permission: {
+                            select: {
+                                code: true,
+                                description: true
+                            }
+                        }
+                    }
+                })
+
+                return res.map(p => ({
+                    code: p.client_permission.code,
+                    description: p.client_permission.description
+                }))
+            })
+        )
+
+        const permissions = permissionsArrays.flat()
+
+        const { token, tokenHash } = generateRefreshToken()
+
+        await prisma.refreshToken.create({
+            data: {
+                account_id: existing.id,
+                account_type: "client",
+                token: tokenHash,
+                expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000)
+            }
+        })
+
+        const access_token = await generateToken({
+            account_id: existing.id,
+            roles: roleNames,
+            permissions,
+            account_type: "client"
+        })
+
+        return {
+            user: {
+                id: existing.id,
+                email: existing.email,
+                firstname: existing.firstname,
+                lastname: existing.lastname,
+                account_type: "client"
+            },
+            roles: roleNames,
+            permissions,
+            tokens: {
+                access: access_token,
+                token
+            }
+        }
+    }
+
+    static async updateAdminStatus(account_id: string, status: string) {
+
+        if (!account_id) {
+            throw new AppError("account_id requis", 400);
+        }
+
+        if (!status) {
+            throw new AppError("status requis", 400);
+        }
+
+        const admin = await prisma.adminAccount.findUnique({
+            where: { id: account_id }
+        });
+
+        if (!admin) {
+            throw new AppError("Compte admin introuvable", 404);
+        }
+
+        const updated = await prisma.adminAccount.update({
+            where: { id: account_id },
+            data: {
+                status
+            }
+        });
+
+        const { password_hash, ...safeAdmin } = updated;
+
+        return safeAdmin;
+    }
+
+    static async updateClientStatus(account_id: string, status: string) {
+
+        if (!account_id) {
+            throw new AppError("account_id requis", 400);
+        }
+
+        if (!status) {
+            throw new AppError("status requis", 400);
+        }
+
+        const client = await prisma.clientAccount.findUnique({
+            where: { id: account_id }
+        });
+
+        if (!client) {
+            throw new AppError("Compte client introuvable", 404);
+        }
+
+        const updated = await prisma.clientAccount.update({
+            where: { id: account_id },
+            data: {
+                status
+            }
+        });
+
+        const { password_hash, ...safeClient } = updated;
+
+        return safeClient;
     }
 }

@@ -1,11 +1,12 @@
-import { NextFunction, Request, Response } from "express";
+import {  RequestHandler } from "express";
 
 export interface ServiceConfig {
     path: string,
     url: string,
     pathRewrite: Record<string, string>,
     name: string,
-    timeout?: number
+    timeout?: number,
+    middlewares?: RequestHandler[]
 }
 
 
@@ -23,6 +24,7 @@ export interface Config {
     GATEWAY_JWT_SECRET: string,
     GATEWAY_JWT_EXPIRES_IN: string,
     LOG_LEVEL: string,
+    PUBLIC_KEY:string,
     AUTH_SERVICE_URL: string,
     PAYMENT_SERVICE: string,
 }

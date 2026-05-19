@@ -8,7 +8,7 @@ const PUBLIC_KEY = fs.readFileSync(path.join(process.cwd(), 'keys/admin_lupeto_p
 // console.log(PRIVATE_KEY);
 
 export const config = {
-    saltRounds: process.env.SALT_ROUND || 10,
+    saltRounds: Number(process.env.SALT_ROUND) || 10,
     jwt_secret_key: process.env.AUTH_JWT_SECRET || '',
     admin_private_key: PRIVATE_KEY,
     admin_public_key: PUBLIC_KEY,

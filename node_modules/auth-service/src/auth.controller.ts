@@ -26,7 +26,7 @@ export class AuthControllers {
                 role
             } = req.body;
 
-            // DTO construction propre
+            // DTO construction 
             const adminDto: CreateUserDTO = {
                 firstname,
                 lastname,
@@ -171,6 +171,184 @@ export class AuthControllers {
             const result = await AuthService.refreshAccessToken(account_id, refreshToken)
             AuthControllers.setCookie(res, "ACCESS_TOKEN", result.tokens.access)
             res.status(200).json(createApiResponse(true, "Token d'accès rafraîchi avec succès"))
+        } catch (error: any) {
+
+            if (error instanceof AppError) {
+                return res.status(error.statusCode).json(
+                    createApiResponse(
+                        false,
+                        null,
+                        error.message,
+                        undefined,
+                        error.name
+                    )
+                );
+            }
+
+            return res.status(500).json(
+                createApiResponse(
+                    false,
+                    null,
+                    "Internal server error"
+                )
+            );
+        }
+    }
+
+    async createClientController(req: Request, res: Response) {
+        try {
+            const {
+                firstname,
+                lastname,
+                password,
+                email,
+                telephone,
+                role
+            } = req.body;
+
+            // DTO construction
+            const clientDto: CreateUserDTO = {
+                firstname,
+                lastname,
+                password,
+                email,
+                telephone,
+                role
+            };
+
+            // call service
+            const result = await AuthService.createClient(clientDto);
+
+            return res.status(201).json(
+                createApiResponse(
+                    true,
+                    result,
+                    "Client créé avec succès"
+                )
+            );
+
+        } catch (error: any) {
+
+            if (error instanceof AppError) {
+                return res.status(error.statusCode).json(
+                    createApiResponse(
+                        false,
+                        null,
+                        error.message,
+                        undefined,
+                        error.name
+                    )
+                );
+            }
+
+            return res.status(500).json(
+                createApiResponse(
+                    false,
+                    null,
+                    "Internal server error"
+                )
+            );
+        }
+    }
+
+    async loginClientController(req: Request, res: Response) {
+        try {
+            const { email, password } = req.body;
+
+            const result = await AuthService.loginClient(email, password);
+
+            AuthControllers.setCookie(res, "ACCESS_TOKEN", result.tokens.access);
+            AuthControllers.setCookie(
+                res,
+                "REFRESH_TOKEN",
+                result.tokens.token,
+                { maxAge: 2 * 86400000 }
+            );
+
+            return res.status(200).json(
+                createApiResponse(
+                    true,
+                    result,
+                    "Connexion client réussie"
+                )
+            );
+
+        } catch (error: any) {
+
+            if (error instanceof AppError) {
+                return res.status(error.statusCode).json(
+                    createApiResponse(
+                        false,
+                        null,
+                        error.message,
+                        undefined,
+                        error.name
+                    )
+                );
+            }
+
+            return res.status(500).json(
+                createApiResponse(
+                    false,
+                    null,
+                    "Internal server error"
+                )
+            );
+        }
+    }
+
+    async updateAdminStatusController(req: Request, res: Response) {
+        try {
+            const { account_id, status } = req.body;
+
+            const result = await AuthService.updateAdminStatus(account_id, status);
+
+            return res.status(200).json(
+                createApiResponse(
+                    true,
+                    result,
+                    "Statut admin mis à jour avec succès"
+                )
+            );
+
+        } catch (error: any) {
+
+            if (error instanceof AppError) {
+                return res.status(error.statusCode).json(
+                    createApiResponse(
+                        false,
+                        null,
+                        error.message,
+                        undefined,
+                        error.name
+                    )
+                );
+            }
+
+            return res.status(500).json(
+                createApiResponse(
+                    false,
+                    null,
+                    "Internal server error"
+                )
+            );
+        }
+    }
+
+    async updateClientStatusController(req: Request, res: Response) {
+        try {
+            const { account_id, status } = req.body;
+
+            const result = await AuthService.updateClientStatus(account_id, status);
+
+            return res.status(200).json(
+                createApiResponse(
+                    true,
+                    result,
+                    "Statut client mis à jour avec succès"
+                )
+            );
+
         } catch (error: any) {
 
             if (error instanceof AppError) {

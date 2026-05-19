@@ -1,3 +1,5 @@
+import "express";
+
 export interface ApiResponse<T = any> {
     success: boolean,
     data?: T,
@@ -20,3 +22,20 @@ export type HttpStatus = 200 // ok
     | 404 // ressource non trouvée
     | 401 // mauvaise requête ex: user_id manquant 
     | 500 // erreur serveur
+
+
+export interface AuthUser {
+    account_id: string;
+    account_type: "admin" | "client";
+    roles: string[];
+    permissions: { code: string; description: string }[];
+}
+
+declare global {
+    namespace Express {
+        interface Request {
+            user?: AuthUser;
+            refreshToken?: string;
+        }
+    }
+}

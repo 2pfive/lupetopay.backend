@@ -8,7 +8,7 @@ import cors from "cors"
 
 import { config } from "./config"
 import logger from "./config/logger"
-import { proxyServices } from "./config/services"
+import { proxyServices, registerRouteMiddlewares } from "./config/services"
 
 
 const app = express()
@@ -32,6 +32,11 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 app.get('/health', (_req: Request, res: Response) => {
     res.status(200).json({ status: 'ok' })
 })
+
+
+//application des middlewares
+registerRouteMiddlewares(app)
+
 
 // services routes
 proxyServices(app)
