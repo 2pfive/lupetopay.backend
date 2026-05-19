@@ -1,6 +1,6 @@
 import { Request, Response, CookieOptions } from "express";
 import { AuthService } from "./auth.services";
-import { CreateAdminDTO } from "./types";
+import { CreateUserDTO } from "./types";
 import { AppError, createApiResponse } from "@app/shared"
 
 export class AuthControllers {
@@ -27,7 +27,7 @@ export class AuthControllers {
             } = req.body;
 
             // DTO construction propre
-            const adminDto: CreateAdminDTO = {
+            const adminDto: CreateUserDTO = {
                 firstname,
                 lastname,
                 password,
@@ -136,6 +136,41 @@ export class AuthControllers {
                 )
             );
 
+        } catch (error: any) {
+
+            if (error instanceof AppError) {
+                return res.status(error.statusCode).json(
+                    createApiResponse(
+                        false,
+                        null,
+                        error.message,
+                        undefined,
+                        error.name
+                    )
+                );
+            }
+
+            return res.status(500).json(
+                createApiResponse(
+                    false,
+                    null,
+                    "Internal server error"
+                )
+            );
+        }
+    }
+
+    async refreshAccessTokenController(req: Request, res: Response) {
+        try {
+            const refreshToken = req.cookies?.REFRESH_TOKEN;
+            const { account_id } = req.body
+
+            if (!refreshToken) {
+                throw new AppError("refresh token manquant", 401);
+            }
+            const result = await AuthService.refreshAccessToken(account_id, refreshToken)
+            AuthControllers.setCookie(res, "ACCESS_TOKEN", result.tokens.access)
+            res.status(200).json(createApiResponse(true, "Token d'accès rafraîchi avec succès"))
         } catch (error: any) {
 
             if (error instanceof AppError) {

@@ -7,5 +7,6 @@ const controller = new AuthControllers()
 router.post('/admin/register', controller.createAdminController)
 router.post('/admin/login',controller.loginController)
 router.post('/admin/refresh',controller.refreshTokenController)
+router.post("/admin/refresh-access",controller.refreshAccessTokenController)
 
 export default router

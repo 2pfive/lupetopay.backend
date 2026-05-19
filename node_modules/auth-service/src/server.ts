@@ -66,7 +66,7 @@ app.get('/roles', async (_req: Request, res: Response) => {
     }
 });
 
-// middleware global d'erreur (IMPORTANT)
+// middleware global d'erreur
 app.use(errorMiddleware);
 
 app.listen(3300, () => {

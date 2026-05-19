@@ -86,17 +86,17 @@ model AdminRolePermission {
 //
 
 model ClientAccount {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  email         String   @unique
-  firstname     String
-  lastname      String
-  telephone     String
-  password_hash String
-  status        String
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-
-  roles ClientAccountRole[]
+  id                    String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email                 String              @unique
+  firstname             String
+  lastname              String
+  telephone             String
+  password_hash         String
+  status                String
+  created_at            DateTime            @default(now())
+  updated_at            DateTime            @updatedAt
+  is_temporary_password Boolean             @default(false)
+  roles                 ClientAccountRole[]
 
   @@map("client_accounts")
 }

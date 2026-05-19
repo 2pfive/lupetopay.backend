@@ -1,9 +1,9 @@
 import bcrypt from "bcrypt"
 import { config } from "../config/config"
-import { CreateAdminDTO } from "../types";
+import { CreateUserDTO } from "../types";
 import crypto from "crypto";
 
-export const validateCreateAdmin = (data: CreateAdminDTO) => {
+export const validateCreateUser = (data: CreateUserDTO) => {
     const errors: string[] = [];
 
     if (!data.email || !data.email.includes("@")) {

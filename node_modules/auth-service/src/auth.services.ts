@@ -1,14 +1,55 @@
-import { comparePasswords, generateTemporaryPassword, hashPassword, validateCreateAdmin } from "./lib/helper";
+import { comparePasswords, generateTemporaryPassword, hashPassword, validateCreateUser } from "./lib/helper";
 import { generateRefreshToken, generateToken, hashToken } from "./lib/jsonwebtoken";
 import { prisma } from "./lib/prisma.client";
-import { CreateAdminDTO } from "./types";
+import { CreateUserDTO } from "./types";
 import { AppError } from "@app/shared"
 
 export class AuthService {
 
-    static async createAdmin(admin: CreateAdminDTO) {
+    static async getUserPermissions(account_id: string) {
 
-        const errors = validateCreateAdmin(admin)
+        const roles = await prisma.adminAccountRole.findMany({
+            where: {
+                admin_account_id: account_id
+            },
+            include: {
+                admin_role: true
+            }
+        })
+
+        const permissionsArrays = await Promise.all(
+            roles.map(async (r) => {
+
+                const res = await prisma.adminRolePermission.findMany({
+                    where: {
+                        admin_role_id: r.admin_role_id
+                    },
+                    select: {
+                        admin_permission: {
+                            select: {
+                                code: true,
+                                description: true
+                            }
+                        }
+                    }
+                })
+
+                return res.map(p => ({
+                    code: p.admin_permission.code,
+                    description: p.admin_permission.description
+                }))
+            })
+        )
+
+        return {
+            roles,
+            permissions: permissionsArrays.flat()
+        }
+    }
+
+    static async createAdmin(admin: CreateUserDTO) {
+
+        const errors = validateCreateUser(admin)
         if (errors.length > 0) throw new AppError(errors.join(", "), 400)
 
         const existing = await prisma.adminAccount.findUnique({
@@ -158,7 +199,6 @@ export class AuthService {
             account_type: "administrator"
         })
 
-
         return {
             user: {
                 id: existing.id,
@@ -188,13 +228,18 @@ export class AuthService {
 
         // récupérer le token actuel
         const hash_old = hashToken(oldToken)
-        console.log("############## old token hashed #############", hash_old);
+        // console.log("############## old token hashed #############", hash_old);
 
         const existingToken = await prisma.refreshToken.findUnique({
             where: {
-                token: hash_old
+                token: hash_old,
+                AND: {
+                    account_id: account_id
+                }
             }
         })
+
+        // console.log("refresh existingToken database",existingToken);
 
         if (!existingToken) {
             throw new AppError("refresh token invalide", 401)
@@ -231,6 +276,126 @@ export class AuthService {
         return {
             token,
             expires_at
+        }
+    }
+
+    static async refreshAccessToken(account_id: string, oldToken: string) {
+        if (!account_id) {
+            throw new AppError("account_id requis", 400)
+        }
+
+        if (!oldToken) {
+            throw new AppError("refresh token requis", 400)
+        }
+
+        // récupérer le token actuel
+        const hash_old = hashToken(oldToken)
+        const existingToken = await prisma.refreshToken.findUnique({
+            where: {
+                token: hash_old,
+                AND: {
+                    account_id: account_id
+                }
+            }
+        })
+
+        if (!existingToken) {
+            throw new AppError("refresh token invalide", 401)
+        }
+
+        if (existingToken.revoked_at || existingToken.expires_at < new Date()) {
+            throw new AppError("refresh token expiré ou révoqué", 401)
+        }
+        
+        // récupération des permissions
+        const user_permissions=await AuthService.getUserPermissions(account_id)
+        // console.log("############# permissions #############",user_permissions);
+        
+        // générer un nouveau token d'accès
+
+        const access_token = await generateToken({
+            account_id,
+            roles: user_permissions.roles,
+            permissions:user_permissions.permissions,
+            account_type: "administrator"
+        })
+
+        return {
+            tokens: {
+                access: access_token,
+            }
+        }
+    }
+
+    static async createClient(client: CreateUserDTO) {
+        const errors = validateCreateUser(client)
+        if (errors.length > 0) throw new AppError(errors.join(", "), 400)
+
+        const existing = await prisma.clientAccount.findUnique({
+            where: {
+                email: client.email
+            }
+        })
+
+        if (existing) throw new AppError("Utilisateur déjà existant", 409)
+
+        let password_hash
+        let temporaryPassword
+        if (client.password) {
+            password_hash = await hashPassword(client.password)
+        } else {
+            temporaryPassword = generateTemporaryPassword(10)
+            password_hash = await hashPassword(temporaryPassword)
+        }
+
+        const new_client = await prisma.clientAccount.create({
+            data: {
+                email: client.email,
+                firstname: client.firstname,
+                lastname: client.lastname,
+                telephone: client.telephone,
+                password_hash: password_hash,
+                is_temporary_password: !client.password,
+                status: 'ACTIVE'
+            }
+        })
+
+        if (temporaryPassword) {
+            const random_str = generateTemporaryPassword(10)
+            const reset_token = await hashPassword(random_str)
+            await prisma.passwordResetToken.create({
+                data: {
+                    account_id: new_client.id,
+                    account_type: 'admin',
+                    token_hash: reset_token,
+                    expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000) // expire après 48h
+                }
+            })
+        }
+
+        // configuration des rôles  
+        const role = await prisma.adminRole.findUnique({
+            where: {
+                name: client.role || 'admin'
+            }
+        })
+
+        if (role) {
+            await prisma.adminAccountRole.create({
+                data: {
+                    admin_account_id: new_client.id,
+                    admin_role_id: role.id
+                }
+            })
+        }
+        // ////////////////////////////////////////////////////
+
+        const { password_hash: _, ...safeClient } = new_client;
+
+        return {
+            ...safeClient,
+            role,
+            temporaryPassword: temporaryPassword
         }
     }
 }
